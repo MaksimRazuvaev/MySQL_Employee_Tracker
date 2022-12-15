@@ -1,9 +1,38 @@
 // To include nbm packages needed for create questionary (inquier) and save to file (fs) libraries
 const inquirer = require('inquirer');
-const fs = require('fs');
-const generateHTML = require('./src/generateHTML');
+const express = require('express');
+const mysql = require('mysql2');
+const MaxLengthInputPrompt = require('inquirer-maxlength-input-prompt');
 
-const team = [];
+inquirer.registerPrompt('maxlength-input', MaxLengthInputPrompt); 
+
+const generateData = require('./src/generateData');
+
+
+const PORT = process.env.PORT || 3001;
+const app = express();
+
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+const db = mysql.createConnection(
+    {
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'staff'
+    },
+    console.log(`Connected to the staff database.`)
+  );
+
+const startMenuChoisesArr = ["view all departments", 
+                            "view all roles", 
+                            "view all employees",
+                            "add a department",
+                            "add a role",
+                            "add an employee",
+                            "update an employee role",
+                            "bonus menu",];
 
 // to launch the query after
 const startMenu = () => {
@@ -12,13 +41,7 @@ const startMenu = () => {
             type: 'list',
             name: 'options',
             message: 'Do you want to create new role or exit and form HTML page?',
-            choices: ["view all departments", 
-                        "view all roles", 
-                        "view all employees",
-                        "add a department",
-                        "add a role",
-                        "add an employee",
-                        "update an employee role"],
+            choices: startMenuChoisesArr,
         },     
     ])
     .then((answer) => {
@@ -36,81 +59,111 @@ const startMenu = () => {
             addEmployee();
         } else if (answer.options === 'update an employee role') {
             updateEmployee();
+        } else if (answer.options === 'bonus menu') {
+            startMenuBonus();
         }
     });
 };
 
-// initial query to get an manager data
+
+const startMenuBonus = () => {
+    inquirer.prompt([
+        {
+            type: 'list',
+            name: 'options',
+            message: 'Do you want to create new role or exit and form HTML page?',
+            choices: ["update employee managers", 
+                        "view employees by manager", 
+                        "view employees by department",
+                        "delete departments",
+                        "delete roles",
+                        "delete employees",
+                        "view the total utilized budget of a department",],
+        },     
+    ])
+    .then((answer) => {
+        if (answer.options === 'update employee managers') {
+            updateEmployeeMahager();
+        } else if (answer.options === 'view employees by manager') {
+            viewEmployeeManager();
+        } else if (answer.options === 'view employees by department') {
+            viewEmployeeDepartment();
+        } else if (answer.options === 'delete departments') {
+            deleteDepartment();
+        } else if (answer.options === 'delete roles') {
+            deleteRoles();
+        } else if (answer.options === 'delete employees') {
+            deleteEmployee();
+        } else if (answer.options === 'view the total utilized budget of a department') {
+            viewBudget();
+        }
+    });
+};
+
+// view all roles query
 const viewAllRoles = () => {
-    return inquirer.prompt([
-        {
-            type: 'input',
-            name: 'name',
-            message: 'What is your manager name?',
-            validate: namelInput => {
-                if (/[A-Za-z]/.test(namelInput)) {
-                    return true;
-                } else {
-                    console.log("Please use letters to enter name");
-                    return false;
-                }
-            }        
-        },
-        {
-            type: 'input',
-            name: 'id',
-            message: 'What is your manager id?',
-            validate: idlInput => {
-                if (/[0-9]/.test(idlInput)) {
-                return true;
-                } else {
-                    console.log("Please use numbers for id");
-                    return false;
-                }
-            }
-        },
-        {
-            type: 'input',
-            name: 'email',
-            message: 'What is your manager email address?',
-            validate: emailInput => {
-                if (/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()\.,;\s@\"]+\.{0,1})+([^<>()\.,;:\s@\"]{2,}|[\d\.]+))$/.test(emailInput)) {
-                    return true;
-                } else {
-                    console.log("Please enter email in the email@email.com format");
-                    return false;
-                }
-            }
-        },
-        {
-            type: 'input',
-            name: 'officeNumber',
-            message: 'What is your manager office number?',
-            validate: officeNumberlInput => {
-                if (/[0-9]/.test(officeNumberlInput)) {
-                return true;
-                } else {
-                    console.log("Please use numbers for officeNumber");
-                    return false;
-                }
-            }
-        },
-    ])
-        .then((answer) => {
-            const manager = new Manager(answer.name, answer.id, answer.email, answer.officeNumber);
-            team.push(manager);
-            startMenu();
-        });
+    db.query('SELECT * FROM role', function (err, results) {
+        console.log(results);
+    });
+    startMenu();
 };
 
-// to launch Engineer query
+// view all departments query
 const viewAllDepartments = () => {
+    db.query('SELECT * FROM department', function (err, results) {
+        console.log(results);
+    });
+    startMenu();
+};
+
+// view all employees query
+const viewAllEmployees = () => {
+    db.query('SELECT * FROM department', function (err, results) {
+        console.log(results);
+    });
+    startMenu();
+};
+
+// view all employees query
+const addDepartment = () => {
     return inquirer.prompt([
         {
             type: 'input',
             name: 'name',
-            message: 'What is your engineer name?',
+            message: 'What is the name of the department?',
+            maxLength: 30,
             validate: namelInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                if (/[A-Za-z]/.test(namelInput)) {
+                    return true;
+                } else {
+                    console.log("Please use letters to enter name");
+                    return false;
+                }
+            }        
+        },
+    ])
+    .then((answer) => {
+        // const queryStr = 'INSERT INTO department (name) VALUES ("queryName");';       ??????
+        const queryStr = 'INSERT INTO department (name) VALUES ("'+ answer.name +'");';
+
+        db.query(queryStr, function (err, results) {
+            console.log(results);
+        });
+        startMenu();
+    });
+};
+
+// add role query
+const addRole = () => {
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'name',
+            message: 'What is the name of the role?',
+            maxLength: 30,
+            validate: namelInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
                 if (/[A-Za-z]/.test(namelInput)) {
                     return true;
                 } else {
@@ -121,51 +174,27 @@ const viewAllDepartments = () => {
         },
         {
             type: 'input',
-            name: 'id',
-            message: 'What is your engineer id?',
-            validate: idlInput => {
-                if (/[0-9]/.test(idlInput)) {
-                return true;
-                } else {
-                    console.log("Please use numbers for id");
-                    return false;
-                }
-            }
-        },
-        {
-            type: 'input',
-            name: 'email',
-            message: 'What is your engineer email address?',
-            validate: emailInput => {
-                if (/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()\.,;\s@\"]+\.{0,1})+([^<>()\.,;:\s@\"]{2,}|[\d\.]+))$/.test(emailInput)) {
+            name: 'salary',
+            message: 'What is the salary of the role?',
+            maxLength: 30,
+            validate: namelInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                if (/[0-9]/.test(salarylInput)) {
                     return true;
                 } else {
-                    console.log("Please enter email in the email@email.com format");
+                    console.log("Please use digits to enter salary");
                     return false;
                 }
-            }
+            }        
         },
         {
             type: 'input',
-            name: 'github',
-            message: 'What is your engineer GitHub username?',
-        },
-    ])
-    .then((answer) => {
-        const engineer = new Engineer(answer.name, answer.id, answer.email, answer.github);
-        team.push(engineer);
-        startMenu();
-    });
-};
-
-// to launch Intern query
-const enterIntern = () => {
-    return inquirer.prompt([
-        {
-            type: 'input',
-            name: 'name',
-            message: 'What is your intern name?',
+            name: 'department',
+            message: 'Which department does the role belong to?',
+            maxLength: 30,
             validate: namelInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                // display list of the roles from table ???
                 if (/[A-Za-z]/.test(namelInput)) {
                     return true;
                 } else {
@@ -174,64 +203,179 @@ const enterIntern = () => {
                 }
             }        
         },
+    ])
+    .then((answer) => {
+        // const queryStr = 'INSERT INTO department (name) VALUES ("queryName");';       ??????
+        const getDepartmentId = 'SELECT id FROM department WHERE name = "' + answer.department + '"';
+
+        const queryStr = 'INSERT INTO department (title, salary, department_id) VALUES ("'+ answer.name +'", "'+ answer.salary +'", "'+ getDepartmentId +'");';
+
+        db.query(queryStr, function (err, results) {
+            console.log(results);
+        });
+        startMenu();
+    });
+};
+
+// add employee query
+const addEmployee = () => {
+    return inquirer.prompt([
         {
             type: 'input',
-            name: 'id',
-            message: 'What is your intern id?',
-            validate: idlInput => {
-                if (/[0-9]/.test(idlInput)) {
-                return true;
+            name: 'fName',
+            message: "What is the employee's first name?",
+            maxLength: 30,
+            validate: fNamelInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                if (/[A-Za-z]/.test(fNamelInput)) {
+                    return true;
                 } else {
-                    console.log("Please use numbers for id");
+                    console.log("Please use letters to enter first name");
                     return false;
                 }
-            }
+            }        
         },
         {
             type: 'input',
-            name: 'email',
-            message: 'What is your intern email address?',
-            validate: emailInput => {
-                if (/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()\.,;\s@\"]+\.{0,1})+([^<>()\.,;:\s@\"]{2,}|[\d\.]+))$/.test(emailInput)) {
+            name: 'lName',
+            message: "What is the employee's last name?",
+            maxLength: 30,
+            validate: lNamelInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                if (/[A-Za-z]/.test(lNamelInput)) {
                     return true;
                 } else {
-                    console.log("Please enter email in the email@email.com format");
+                    console.log("Please use letters to enter last name");
                     return false;
                 }
-            }
+            }        
         },
         {
             type: 'input',
-            name: 'school',
-            message: 'What is your intern school?',
-            validate: schoolInput => {
-                if (/[A-Za-z]/.test(schoolInput)) {
+            name: 'role',
+            message: "What is the employee's role?",
+            maxLength: 30,
+            validate: roleInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                // display list of the roles from table ???
+                if (/[A-Za-z]/.test(roleInput)) {
                     return true;
                 } else {
-                    console.log("Please enter use letters to enter school");
+                    console.log("Please use letters to enter role");
+                    return false;
+                }
+            }        
+        },
+        {
+            type: 'input',
+            name: 'manager',
+            message: "Who is the employee's manager?",
+            maxLength: 30,
+            validate: managerInput => {
+                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                // display list of the roles from table ???
+                if (/[A-Za-z]/.test(managerInput)) {
+                    return true;
+                } else {
+                    console.log("Please use letters to enter manager's name");
                     return false;
                 }
             }        
         },
     ])
     .then((answer) => {
-        const intern = new Intern(answer.name, answer.id, answer.email, answer.school);
-        team.push(intern);
+        // const queryStr = 'INSERT INTO department (name) VALUES ("queryName");';       ??????
+        var managerName = answer.manager.split(" ");
+        var mangerFName = managerName[0];
+        var mangerLName = managerName[1];
+        const getRoleId = 'SELECT id FROM role WHERE title = "' + answer.role + '"';
+        const getManagerId = 'SELECT id FROM employee WHERE first_name = "' +mangerFName+ '" AND last_name = "' +mangerLName+ '"';
+
+        const queryStr = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("' +answer.fName+ '", "' +answer.lName+ '", "' +getRoleId+ '", "' +getManagerId+ '");';
+
+        db.query(queryStr, function (err, results) {
+            console.log(results);
+        });
         startMenu();
     });
 };
 
+// update employee role query
+const updateEmployee = () => {
+    return inquirer.prompt([
+        {
+            type: 'list',
+            name: 'options',
+            message: "Which employee's role do you want to update?",
+            choices: ["update employee managers", 
+                        "view employees by manager", 
+                        "view employees by department",
+                        "delete departments",
+                        "delete roles",
+                        "delete employees",
+                        "view the total utilized budget of a department",],
+        },     
+    ])
+    .then((answer) => {
+        // const queryStr = 'INSERT INTO department (name) VALUES ("queryName");';       ??????
+        var managerName = answer.manager.split(" ");
+        var mangerFName = managerName[0];
+        var mangerLName = managerName[1];
+        const getRoleId = 'SELECT id FROM role WHERE title = "' + answer.role + '"';
+        const getManagerId = 'SELECT id FROM employee WHERE first_name = "' +mangerFName+ '" AND last_name = "' +mangerLName+ '"';
 
-// TODO: Create a function to write HTML page
-function writeToFile(fileName, data) {
-    fs.appendFile(fileName, data, (err) =>
-    err ? console.error(err) : console.log('Commit logged!'));
-}
+        const queryStr = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("' +answer.fName+ '", "' +answer.lName+ '", "' +getRoleId+ '", "' +getManagerId+ '");';
+
+        db.query(queryStr, function (err, results) {
+            console.log(results);
+        });
+        startMenu();
+    });
+
+};
+
+// view all roles query
+const updateEmployeeMahager = () => {
+
+};
+
+const viewEmployeeManager = () => {
+
+};
+
+const viewEmployeeDepartment = () => {
+
+};
+
+const deleteDepartment = () => {
+
+};
+
+const deleteRoles = () => {
+
+};
+
+const deleteEmployee = () => {
+
+};
+
+const viewBudget = () => {
+
+};
+
+app.use((req, res) => {
+    res.status(404).end();
+  });
+  
+app.listen(PORT, () => {
+console.log(`Server running on port ${PORT}`);
+});
+  
 
 // function to initialize app
 const init = () => {
     startMenu()
-      .then(() => console.log('Successfully wrote to index.html'))
+      .then(() => console.log('Successfull'))
       .catch((err) => console.error(err));
   };
 // Function call to initialize app
