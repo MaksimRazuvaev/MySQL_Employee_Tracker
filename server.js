@@ -23,16 +23,17 @@ const db = mysql.createConnection(
       database: 'staff'
     },
     console.log(`Connected to the staff database.`)
-  );
+);
 
-const startMenuChoisesArr = ["view all departments", 
+// start menu choice options
+const startMenuChoicesArr = ["view all departments", 
                             "view all roles", 
                             "view all employees",
                             "add a department",
                             "add a role",
                             "add an employee",
                             "update an employee role",
-                            "bonus menu",];
+                            "bonus menu"];
 
 // to launch the query after
 const startMenu = () => {
@@ -40,8 +41,8 @@ const startMenu = () => {
         {
             type: 'list',
             name: 'options',
-            message: 'Do you want to create new role or exit and form HTML page?',
-            choices: startMenuChoisesArr,
+            message: 'What would you like to do?',
+            choices: startMenuChoicesArr,
         },     
     ])
     .then((answer) => {
@@ -65,6 +66,14 @@ const startMenu = () => {
     });
 };
 
+// bonus menu choice options
+const startMenuChoicesBonusArr = ["update employee managers", 
+                                    "view employees by manager", 
+                                    "view employees by department",
+                                    "delete departments",
+                                    "delete roles",
+                                    "delete employees",
+                                    "view the total utilized budget of a department"];
 
 const startMenuBonus = () => {
     inquirer.prompt([
@@ -72,13 +81,7 @@ const startMenuBonus = () => {
             type: 'list',
             name: 'options',
             message: 'Do you want to create new role or exit and form HTML page?',
-            choices: ["update employee managers", 
-                        "view employees by manager", 
-                        "view employees by department",
-                        "delete departments",
-                        "delete roles",
-                        "delete employees",
-                        "view the total utilized budget of a department",],
+            choices: startMenuChoicesBonusArr,
         },     
     ])
     .then((answer) => {
@@ -302,18 +305,18 @@ const addEmployee = () => {
 
 // update employee role query
 const updateEmployee = () => {
-    return inquirer.prompt([
+    // sql request to get list of employees 
+
+    const employeeSQLRequest = 'SELECT CONCAT(first_name, " ", last_name) AS name FROM employee';
+    const employeeArray = [];
+    db.query(employeeSQLRequest, function (err, results) {
+        console.log(results);
+    inquirer.prompt([
         {
             type: 'list',
             name: 'options',
             message: "Which employee's role do you want to update?",
-            choices: ["update employee managers", 
-                        "view employees by manager", 
-                        "view employees by department",
-                        "delete departments",
-                        "delete roles",
-                        "delete employees",
-                        "view the total utilized budget of a department",],
+            choices: results,
         },     
     ])
     .then((answer) => {
@@ -331,6 +334,16 @@ const updateEmployee = () => {
         });
         startMenu();
     });
+
+
+
+
+
+
+
+    });
+
+
 
 };
 
