@@ -1,19 +1,19 @@
 // To include nbm packages needed for create questionary (inquier) and save to file (fs) libraries
 const inquirer = require('inquirer');
-const express = require('express');
+// const express = require('express');
 const mysql = require('mysql2');
 const MaxLengthInputPrompt = require('inquirer-maxlength-input-prompt');
 
 inquirer.registerPrompt('maxlength-input', MaxLengthInputPrompt); 
 
-const generateData = require('./src/generateData');
+//const generateData = require('./src/generateData');
 
 
-const PORT = process.env.PORT || 3001;
-const app = express();
+// const PORT = process.env.PORT || 3001;
+// const app = express();
 
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+// app.use(express.urlencoded({ extended: false }));
+// app.use(express.json());
 
 const db = mysql.createConnection(
     {
@@ -26,18 +26,12 @@ const db = mysql.createConnection(
 );
 
 // start menu choice options
-const startMenuChoicesArr = ["view all departments", 
-                            "view all roles", 
-                            "view all employees",
-                            "add a department",
-                            "add a role",
-                            "add an employee",
-                            "update an employee role",
-                            "bonus menu"];
+const startMenuChoicesArr = ['view all departments', 'view all roles', 'view all employees', 'add a department',
+                            'add a role', 'add an employee', 'update an employee role', 'bonus menu'];
 
 // to launch the query after
 const startMenu = () => {
-    inquirer.prompt([
+    return inquirer.prompt([
         {
             type: 'list',
             name: 'options',
@@ -64,6 +58,8 @@ const startMenu = () => {
             startMenuBonus();
         }
     });
+    // .catch((err) => console.log(err));
+
 };
 
 // bonus menu choice options
@@ -106,25 +102,26 @@ const startMenuBonus = () => {
 // view all roles query
 const viewAllRoles = () => {
     db.query('SELECT * FROM role', function (err, results) {
-        console.log(results);
+        console.table(results);
+        startMenu();
     });
-    startMenu();
 };
 
 // view all departments query
 const viewAllDepartments = () => {
     db.query('SELECT * FROM department', function (err, results) {
-        console.log(results);
+        console.table(results);
+        startMenu();
     });
-    startMenu();
 };
 
 // view all employees query
 const viewAllEmployees = () => {
-    db.query('SELECT * FROM department', function (err, results) {
+    db.query('SELECT * FROM employee', function (err, results) {
         console.log(results);
+        console.log(results[8].last_name);
+        startMenu();
     });
-    startMenu();
 };
 
 // view all employees query
@@ -158,7 +155,7 @@ const addDepartment = () => {
 };
 
 // add role query
-const addRole = () => {
+/*const addRole = () => {
     return inquirer.prompt([
         {
             type: 'input',
@@ -180,7 +177,7 @@ const addRole = () => {
             name: 'salary',
             message: 'What is the salary of the role?',
             maxLength: 30,
-            validate: namelInput => {
+            validate: salarylInput => {
                 // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
                 if (/[0-9]/.test(salarylInput)) {
                     return true;
@@ -195,30 +192,93 @@ const addRole = () => {
             name: 'department',
             message: 'Which department does the role belong to?',
             maxLength: 30,
-            validate: namelInput => {
+            validate: departmentlInput => {
                 // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
                 // display list of the roles from table ???
-                if (/[A-Za-z]/.test(namelInput)) {
+                if (/[A-Za-z]/.test(departmentlInput)) {
                     return true;
                 } else {
-                    console.log("Please use letters to enter name");
+                    console.log("Please use letters to enter department name");
                     return false;
                 }
             }        
         },
     ])
     .then((answer) => {
-        // const queryStr = 'INSERT INTO department (name) VALUES ("queryName");';       ??????
-        const getDepartmentId = 'SELECT id FROM department WHERE name = "' + answer.department + '"';
+        const getDepartmentId = 'SELECT id FROM department WHERE name = "' + answer.department + '";';
 
-        const queryStr = 'INSERT INTO department (title, salary, department_id) VALUES ("'+ answer.name +'", "'+ answer.salary +'", "'+ getDepartmentId +'");';
+        db.query(getDepartmentId, function (err, results) {
+            const queryStr = 'INSERT INTO role (title, salary, department_id) VALUES ("'+ answer.name +'", '+ answer.salary +', '+ results[0].id +');';
+            
+            db.query(queryStr, function (err, results) {
+                console.table(results+ "did I get second request executed");
+            });
+            startMenu();
+         });
+    });
+};*/
 
-        db.query(queryStr, function (err, results) {
-            console.log(results);
+const addRole = () => {
+    db.query('SELECT * FROM department', function (err, results) {
+        const departmentNames = [];
+// to replays with arrow function
+        for(let i = 0; i < results.length; i++){
+            departmentNames.push(results[i].name);
+        }
+console.log(departmentNames);  
+        return inquirer.prompt([
+            {
+                type: 'input',
+                name: 'name',
+                message: 'What is the name of the role?',
+                maxLength: 30,
+                validate: namelInput => {
+                    // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                    if (/[A-Za-z]/.test(namelInput)) {
+                        return true;
+                    } else {
+                        console.log("Please use letters to enter name");
+                        return false;
+                    }
+                }        
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'What is the salary of the role?',
+                maxLength: 30,
+                validate: salarylInput => {
+                    // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                    if (/[0-9]/.test(salarylInput)) {
+                        return true;
+                    } else {
+                        console.log("Please use digits to enter salary");
+                        return false;
+                    }
+                }        
+            },
+            {
+                type: 'list',
+                name: 'department',
+                message: 'Which department does the role belong to?',
+                choices: departmentNames,
+            },
+        ])
+        .then((answer) => {
+            const getDepartmentId = 'SELECT id FROM department WHERE name = "' + answer.department + '";';
+console.log(answer.department);
+            db.query(getDepartmentId, function (err, results) {
+                const queryStr = 'INSERT INTO role (title, salary, department_id) VALUES ("'+ answer.name +'", '+ answer.salary +', '+ results[0].id +');';
+                
+                db.query(queryStr, function (err, results) {
+                    console.table(results+ "did I get second request executed");
+                });
+                startMenu();
+             });
         });
-        startMenu();
     });
 };
+
 
 // add employee query
 const addEmployee = () => {
@@ -376,20 +436,21 @@ const viewBudget = () => {
 
 };
 
-app.use((req, res) => {
-    res.status(404).end();
-  });
+// app.use((req, res) => {
+//     res.status(404).end();
+//   });
   
-app.listen(PORT, () => {
-console.log(`Server running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+// console.log(`Server running on port ${PORT}`);
+// });
   
 
 // function to initialize app
-const init = () => {
+/*const init = () => {
     startMenu()
       .then(() => console.log('Successfull'))
       .catch((err) => console.error(err));
   };
 // Function call to initialize app
-init();
+init();*/
+startMenu();

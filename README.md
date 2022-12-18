@@ -9,4 +9,4 @@
 - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
 - https://www.npmjs.com/package/inquirer-maxlength-input-prompt
 - https://semicolon.dev/tutorial/vscode/keyboard-shortcuts
-- 
+- https://www.npmjs.com/package/inquirer-maxlength-input-prompt?activeTab=versions
