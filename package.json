@@ -9,9 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "inquirer": "^8.2.5",
+    "dotenv": "^16.0.3",
     "express": "^4.17.1",
-    "mysql2": "^2.2.5",
-    "inquirer-maxlength-input-prompt": "^1.0.2"
+    "inquirer": "^8.2.5",
+    "inquirer-maxlength-input-prompt": "^1.0.2",
+    "mysql2": "^2.2.5"
   }
 }

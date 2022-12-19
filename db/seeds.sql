@@ -8,7 +8,7 @@ VALUES  ("scheff", 50000, 2),
         ("sales person", 31000, 1),
         ("hr", 31000, 2),
         ("senior hr", 35000, 2),
-        ("janitor ", 25000, 3),
+        ("janitor", 25000, 3),
         ("receptionist", 31000, 1),
         ("CEO", 55000, 2),
         ("accounter", 31000, 3);
