@@ -334,7 +334,7 @@ const updateEmployee = () => {
             .then((answer) => {
 
                 var employeeId = 0;
-                
+
                 // errow functions ???
 
                 for(let i = 0; i < employeeObj.length; i++) {
@@ -361,33 +361,276 @@ const updateEmployee = () => {
     });
 };
 
-// view all roles query
+// update employee manager function
 const updateEmployeeMahager = () => {
+    // sql request to get list of employees with ids
+    const employeeSQLRequest = 'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee';
+    const employeeArray = [];
 
+    //db request to get employees
+    db.query(employeeSQLRequest, function (err, results) {
+        results.forEach((result) => {
+            employeeArray.push(result.name);
+        });
+
+        const employeeObj = results;
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'employee',
+                message: "Which employee's manager do you want to update?",
+                choices: employeeArray,
+            },
+            {
+                type: 'list',
+                name: 'manager',
+                message: "Who is new employee's manager?",
+                choices: employeeArray,
+            },
+        ])
+        .then((answer) => {
+
+            let employeeId = 0;
+            
+            // errow functions ???
+
+            for(let i = 0; i < employeeObj.length; i++) {
+                if(employeeObj[i].name === answer.employee) {
+                    employeeId = employeeObj[i].id;
+                }
+            }
+            let managerId = 0;
+            for(let i = 0; i < employeeObj.length; i++) {
+                if(employeeObj[i].name === answer.manager) {
+                    managerId = employeeObj[i].id;
+                }
+            }
+            const updateQueryStr = 'UPDATE employee SET manager_id = ' +managerId+ ' WHERE id = '+employeeId+';';
+            db.query(updateQueryStr, function (err, results) {
+                console.table(results);
+                startMenu();
+            });
+        });
+    });
 };
 
 const viewEmployeeManager = () => {
+    // sql request to get list of employees with ids
+    const employeeSQLRequest = 'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee';
+    const employeeArray = [];
 
+    //db request to get employees
+    db.query(employeeSQLRequest, function (err, results) {
+        results.forEach((result) => {
+            employeeArray.push(result.name);
+        });
+
+        const employeeObj = results;
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'manager',
+                message: "Which manager's employees do you want to review?",
+                choices: employeeArray,
+            },
+        ])
+        .then((answer) => {
+
+            let managerId = 0;
+            // errow functions ???
+
+            for(let i = 0; i < employeeObj.length; i++) {
+                if(employeeObj[i].name === answer.manager) {
+                    managerId = employeeObj[i].id;
+                }
+            }
+            const selectEmployeeByManager = 'SELECT * FROM employee WHERE manager_id = '+managerId+';';
+            db.query(selectEmployeeByManager, function (err, results) {
+                console.table(results);
+                startMenu();
+            });
+        });    
+    });
 };
 
 const viewEmployeeDepartment = () => {
+    // sql request to get list of departments with ids
+    const departmentSQLRequest = 'SELECT id, name FROM department';
+    const departmentArray = [];
 
+    //db request to get employees
+    db.query(departmentSQLRequest, function (err, results) {
+        results.forEach((result) => {
+            departmentArray.push(result.name);
+        });
+
+        const departmentObj = results;
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: "Which department's employees do you want to review?",
+                choices: departmentArray,
+            },
+        ])
+        .then((answer) => {
+
+            let departmentId = 0;
+            // errow functions ???
+
+            for(let i = 0; i < departmentObj.length; i++) {
+                if(departmentObj[i].name === answer.department) {
+                    departmentId = departmentObj[i].id;
+                }
+            }
+            const selectEmployeeByManager = 'SELECT department.name AS Department_Name, CONCAT(first_name, " ", last_name) AS Employee_Name FROM employee LEFT OUTER JOIN role ON (role.id = employee.role_id) LEFT OUTER JOIN department ON (role.department_id = department.id) WHERE department.id = '+departmentId+';';
+            db.query(selectEmployeeByManager, function (err, results) {
+                console.table(results);
+                startMenu();
+            });
+        });    
+    });
 };
 
 const deleteDepartment = () => {
+    // sql request to get list of departments
+    const departmentSQLRequest = 'SELECT name FROM department';
+    const departmentArray = [];
 
+    //db request to get employees
+    db.query(departmentSQLRequest, function (err, results) {
+        results.forEach((result) => {
+            departmentArray.push(result.name);
+        });
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: "What department do you want to delete?",
+                choices: departmentArray,
+            },
+        ])
+        .then((answer) => {
+            const deleteDepartment = 'DELETE FROM department WHERE name = "'+answer.department+'";';
+            db.query(deleteDepartment, function (err, results) {
+                console.table(results);
+                startMenu();
+            });
+        });    
+    });
 };
 
 const deleteRoles = () => {
+    // sql request to get list of departments
+    const rolesSQLRequest = 'SELECT title FROM role';
+    const rolesArray = [];
 
+    //db request to get employees
+    db.query(rolesSQLRequest, function (err, results) {
+        results.forEach((result) => {
+            rolesArray.push(result.title);
+        });
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'role',
+                message: "What role do you want to delete?",
+                choices: rolesArray,
+            },
+        ])
+        .then((answer) => {
+            const deleteRole = 'DELETE FROM role WHERE title = "'+answer.role+'";';
+            db.query(deleteRole, function (err, results) {
+                console.table(results);
+                startMenu();
+            });
+        });    
+    });
 };
 
 const deleteEmployee = () => {
+    // sql request to get list of employees with ids
+    const employeeSQLRequest = 'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee';
+    const employeeArray = [];
 
+    //db request to get employees
+    db.query(employeeSQLRequest, function (err, results) {
+        results.forEach((result) => {
+            employeeArray.push(result.name);
+        });
+
+        const employeeObj = results;
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'employee',
+                message: "Which employee do you want to delete?",
+                choices: employeeArray,
+            },
+        ])
+        .then((answer) => {
+
+            let employeeId = 0;
+            // errow functions ???
+
+            for(let i = 0; i < employeeObj.length; i++) {
+                if(employeeObj[i].name === answer.employee) {
+                    employeeId = employeeObj[i].id;
+                }
+            }
+            const deleteEmployee = 'DELETE FROM employee WHERE id = '+employeeId+';';
+            db.query(deleteEmployee, function (err, results) {
+                console.table(results);
+                startMenu();
+            });
+        });    
+    });
 };
 
 const viewBudget = () => {
+    // sql request to get list of departments with ids
+    const departmentSQLRequest = 'SELECT id, name FROM department';
+    const departmentArray = [];
 
+    //db request to get employees
+    db.query(departmentSQLRequest, function (err, results) {
+        results.forEach((result) => {
+            departmentArray.push(result.name);
+        });
+
+        const departmentObj = results;
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: "What department's budget do you want to review?",
+                choices: departmentArray,
+            },
+        ])
+        .then((answer) => {
+
+            let departmentId = 0;
+            // errow functions ???
+
+            for(let i = 0; i < departmentObj.length; i++) {
+                if(departmentObj[i].name === answer.department) {
+                    departmentId = departmentObj[i].id;
+                }
+            }
+            const selectEmployeeByManager = 'SELECT department.name AS Department_Name, SUM(role.salary) AS Department_Budget FROM employee LEFT OUTER JOIN role ON (role.id = employee.role_id) LEFT OUTER JOIN department ON (role.department_id = department.id) WHERE department.id = '+departmentId+';';
+            db.query(selectEmployeeByManager, function (err, results) {
+                console.table(results);
+                startMenu();
+            });
+        });    
+    });
 };
 
 startMenu();

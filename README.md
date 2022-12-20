@@ -10,3 +10,7 @@
 - https://www.npmjs.com/package/inquirer-maxlength-input-prompt
 - https://semicolon.dev/tutorial/vscode/keyboard-shortcuts
 - https://www.npmjs.com/package/inquirer-maxlength-input-prompt?activeTab=versions
+- https://www.w3schools.com/nodejs/nodejs_mysql_select.asp
+- https://www.w3schools.com/mysql/mysql_update.asp
+- https://stackoverflow.com/questions/12222525/mysql-triple-join
+- 
