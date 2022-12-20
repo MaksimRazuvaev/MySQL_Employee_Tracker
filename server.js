@@ -93,7 +93,7 @@ const startMenuBonus = () => {
 
 // view all roles query
 const viewAllRoles = () => {
-    db.query('SELECT * FROM role', function (err, results) {
+    db.query('SELECT role.title AS Jod_Title, role.id AS Role_ID, department.name AS Department_That_Role_Belongs, role.department_id AS Department_ID, role.salary AS Salary_for_That_Role FROM role LEFT OUTER JOIN department ON (role.department_id = department.id)', function (err, results) {
         console.table(results);
         startMenu();
     });
@@ -101,7 +101,7 @@ const viewAllRoles = () => {
 
 // view all departments query
 const viewAllDepartments = () => {
-    db.query('SELECT * FROM department', function (err, results) {
+    db.query('SELECT id AS Department_IDs, name AS Department_Names FROM department', function (err, results) {
         console.table(results);
         startMenu();
     });
@@ -109,11 +109,17 @@ const viewAllDepartments = () => {
 
 // view all employees query
 const viewAllEmployees = () => {
-    db.query('SELECT * FROM employee', function (err, results) {
+    db.query('SELECT employee.id AS Employee_IDs, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Job_Title, department.name AS Departments, role.salary AS Salaries, employee.manager_id AS Manager_ID, CONCAT (manager.first_name, " ", manager.last_name) AS Manager_Name FROM employee LEFT OUTER JOIN role ON (role.id = employee.role_id) LEFT OUTER JOIN department ON (role.department_id = department.id) LEFT JOIN employee manager ON employee.manager_id = manager.id;', function (err, results) {
         console.table(results);
         startMenu();
     });
 };
+/*const viewAllEmployees = () => {
+    db.promise().query('SELECT * FROM employee').then(([rows]) => {
+        console.table(rows);
+        startMenu();
+    });
+};*/
 
 // add departmen query
 const addDepartment = () => {
@@ -124,7 +130,7 @@ const addDepartment = () => {
             message: 'What is the name of the department?',
             maxLength: 30,
             validate: namelInput => {
-                if (/[A-Za-z]{0, 30}/.test(namelInput)) {
+                if (/[A-Za-z]/.test(namelInput)) {
                     return true;
                 } else {
                     console.log("Please use letters to enter name. Use no more than 30 letters.");
@@ -172,7 +178,7 @@ const addRole = () => {
                 message: 'What is the salary of the role?',
                 maxLength: 30,
                 validate: salarylInput => {
-                    // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                    // if (/^[0-9]{0,30}$/.test(salarylInput)) {
                     if (/[0-9]/.test(salarylInput)) {
                         return true;
                     } else {
@@ -202,7 +208,6 @@ const addRole = () => {
     });
 };
 
-
 // add employee query
 const addEmployee = () => { 
     inquirer.prompt([
@@ -210,10 +215,10 @@ const addEmployee = () => {
             type: 'input',
             name: 'fName',
             message: "What is the employee's first name?",
-            maxLength: 30,
+            // maxLength: 30,
             validate: fNamelInput => {
-                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
-                if (/[A-Za-z]/.test(fNamelInput)) {
+                if (/^[A-Za-z]{0,30}$/.test(fNamelInput)) {
+                // if (/[A-Za-z]/.test(fNamelInput)) {
                     return true;
                 } else {
                     console.log("Please use letters to enter first name");
@@ -227,7 +232,7 @@ const addEmployee = () => {
             message: "What is the employee's last name?",
             maxLength: 30,
             validate: lNamelInput => {
-                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
+                // if (/^[A-Za-z]{0,30}$/.test(lNamelInput)) {
                 if (/[A-Za-z]/.test(lNamelInput)) {
                     return true;
                 } else {
@@ -242,8 +247,7 @@ const addEmployee = () => {
             message: "What is the employee's role?",
             maxLength: 30,
             validate: roleInput => {
-                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
-                // display list of the roles from table ???
+                // if (/^[A-Za-z]{0,30}$/.test(roleInput)) {
                 if (/[A-Za-z]/.test(roleInput)) {
                     return true;
                 } else {
@@ -258,8 +262,7 @@ const addEmployee = () => {
             message: "Who is the employee's manager?",
             maxLength: 30,
             validate: managerInput => {
-                // if (/[A-Za-z]{0, 30}/.test(namelInput)) {             ?????
-                // display list of the roles from table ???
+                // if (/^[A-Za-z]{0,30}$/.test(managerInput)) {
                 if (/[A-Za-z]/.test(managerInput)) {
                     return true;
                 } else {
@@ -270,7 +273,6 @@ const addEmployee = () => {
         },
     ])
     .then((answer) => {
-        // const queryStr = 'INSERT INTO department (name) VALUES ("queryName");';       ??????
         var managerName = answer.manager.split(" ");
         var mangerFName = managerName[0];
         var mangerLName = managerName[1];
@@ -335,13 +337,19 @@ const updateEmployee = () => {
 
                 var employeeId = 0;
 
-                // errow functions ???
-
-                for(let i = 0; i < employeeObj.length; i++) {
+                // for loop method
+                /*for(let i = 0; i < employeeObj.length; i++) {
                     if(employeeObj[i].name === answer.employee) {
                         employeeId = employeeObj[i].id;
                     }
-                }
+                }*/
+                
+                // forEach() method
+                employeeObj.forEach(employee => {
+                    if(employee.name === answer.employee) {
+                        employeeId = employee.id;
+                    }
+                });
 
                 var roleId = 0;
                 for(let i = 0; i < roleObj.length; i++) {
@@ -350,8 +358,16 @@ const updateEmployee = () => {
                     }
                 }
 
-                const updateQueryStr = 'UPDATE employee SET role_id = ' +roleId+ ' WHERE id = '+employeeId+';';
+                // tp use "?" for SQL injection check
+                /*const updateQueryStr = 'UPDATE employee SET role_id = ? WHERE id = ?;';
+                const anArrey = [roleId, employeeId]; //role_id = ? "anArrey[0]" WHERE id = ? "anArrey[1]"
+                db.query(updateQueryStr, anArrey, function (err, results) {*/
+                
+                //other way to use an array
+                /* "UPDATE employee SET role_id = ? WHERE id = ?",
+                            [roleId, employeeId] */
 
+                const updateQueryStr = 'UPDATE employee SET role_id = ' +roleId+ ' WHERE id = '+employeeId+';';
                 db.query(updateQueryStr, function (err, results) {
                     console.table(results);
                 });
@@ -393,13 +409,13 @@ const updateEmployeeMahager = () => {
 
             let employeeId = 0;
             
-            // errow functions ???
-
+            // could be replaced with forEach (learning notes)
             for(let i = 0; i < employeeObj.length; i++) {
                 if(employeeObj[i].name === answer.employee) {
                     employeeId = employeeObj[i].id;
                 }
             }
+
             let managerId = 0;
             for(let i = 0; i < employeeObj.length; i++) {
                 if(employeeObj[i].name === answer.manager) {
@@ -415,6 +431,7 @@ const updateEmployeeMahager = () => {
     });
 };
 
+// query to see Employee Manager
 const viewEmployeeManager = () => {
     // sql request to get list of employees with ids
     const employeeSQLRequest = 'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee';
@@ -439,8 +456,8 @@ const viewEmployeeManager = () => {
         .then((answer) => {
 
             let managerId = 0;
-            // errow functions ???
 
+            // could be replaced with forEach (learning notes)
             for(let i = 0; i < employeeObj.length; i++) {
                 if(employeeObj[i].name === answer.manager) {
                     managerId = employeeObj[i].id;
@@ -455,6 +472,7 @@ const viewEmployeeManager = () => {
     });
 };
 
+// query to see Employee's Department
 const viewEmployeeDepartment = () => {
     // sql request to get list of departments with ids
     const departmentSQLRequest = 'SELECT id, name FROM department';
@@ -479,8 +497,8 @@ const viewEmployeeDepartment = () => {
         .then((answer) => {
 
             let departmentId = 0;
-            // errow functions ???
 
+            // could be replaced with forEach (learning notes)
             for(let i = 0; i < departmentObj.length; i++) {
                 if(departmentObj[i].name === answer.department) {
                     departmentId = departmentObj[i].id;
@@ -495,6 +513,7 @@ const viewEmployeeDepartment = () => {
     });
 };
 
+// to delete a Department
 const deleteDepartment = () => {
     // sql request to get list of departments
     const departmentSQLRequest = 'SELECT name FROM department';
@@ -524,6 +543,7 @@ const deleteDepartment = () => {
     });
 };
 
+// to delete a Role
 const deleteRoles = () => {
     // sql request to get list of departments
     const rolesSQLRequest = 'SELECT title FROM role';
@@ -553,6 +573,7 @@ const deleteRoles = () => {
     });
 };
 
+// to delete an Employee
 const deleteEmployee = () => {
     // sql request to get list of employees with ids
     const employeeSQLRequest = 'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee';
@@ -560,6 +581,7 @@ const deleteEmployee = () => {
 
     //db request to get employees
     db.query(employeeSQLRequest, function (err, results) {
+        // forEach() could be for loop
         results.forEach((result) => {
             employeeArray.push(result.name);
         });
@@ -577,8 +599,8 @@ const deleteEmployee = () => {
         .then((answer) => {
 
             let employeeId = 0;
-            // errow functions ???
 
+            // could be replaced with forEach (learning notes)
             for(let i = 0; i < employeeObj.length; i++) {
                 if(employeeObj[i].name === answer.employee) {
                     employeeId = employeeObj[i].id;
@@ -593,12 +615,13 @@ const deleteEmployee = () => {
     });
 };
 
+// view consolidated budget by Department
 const viewBudget = () => {
     // sql request to get list of departments with ids
     const departmentSQLRequest = 'SELECT id, name FROM department';
     const departmentArray = [];
 
-    //db request to get employees
+    //db request to get departments
     db.query(departmentSQLRequest, function (err, results) {
         results.forEach((result) => {
             departmentArray.push(result.name);
@@ -617,8 +640,8 @@ const viewBudget = () => {
         .then((answer) => {
 
             let departmentId = 0;
-            // errow functions ???
 
+            // could be replaced with forEach (learning notes)
             for(let i = 0; i < departmentObj.length; i++) {
                 if(departmentObj[i].name === answer.department) {
                     departmentId = departmentObj[i].id;
@@ -631,6 +654,12 @@ const viewBudget = () => {
             });
         });    
     });
+};
+
+// exit application
+const exitApp = () => {
+    console.log("By");
+    process.exit();
 };
 
 startMenu();
