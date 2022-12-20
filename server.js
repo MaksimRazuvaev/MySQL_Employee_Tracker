@@ -1,14 +1,10 @@
-// To include nbm packages needed for create questionary (inquier) and save to file (fs) libraries
 const inquirer = require('inquirer');
 const MaxLengthInputPrompt = require('inquirer-maxlength-input-prompt');
 const db = require("./db_connector/connection_db");
 
 inquirer.registerPrompt('maxlength-input', MaxLengthInputPrompt);
 
-
-//const generateData = require('./src/generateData');
-
-// to launch the query after
+// start menu option inquirer 
 const startMenu = () => {
     // start menu choice options
     const startMenuChoicesArr = ['view all departments', 
@@ -49,9 +45,9 @@ const startMenu = () => {
             exitApp();
         }
     });
-    // .catch((err) => console.log(err));
 };
 
+// extra menu option inquirer
 const startMenuBonus = () => {
     // bonus menu choice options
     const startMenuChoicesBonusArr = ["update employee managers", 
@@ -114,6 +110,8 @@ const viewAllEmployees = () => {
         startMenu();
     });
 };
+
+// alternative way to use db with .promise() method
 /*const viewAllEmployees = () => {
     db.promise().query('SELECT * FROM employee').then(([rows]) => {
         console.table(rows);
@@ -143,7 +141,7 @@ const addDepartment = () => {
         const queryStr = 'INSERT INTO department (name) VALUES ("'+ answer.name +'");';
 
         db.query(queryStr, function (err, results) {
-            console.log(results);
+            console.table(results);
         });
         startMenu();
     });
@@ -464,6 +462,8 @@ const viewEmployeeManager = () => {
                 }
             }
             const selectEmployeeByManager = 'SELECT * FROM employee WHERE manager_id = '+managerId+';';
+
+            // const selectEmployeeByManager = 'SELECT	employee.id AS Employee_IDs, CONCAT(first_name, " ", last_name) AS employee, CONCAT (manager.first_name, " ", manager.last_name) AS manager, role.title AS Role_Title, FROM employee LEFT OUTER JOIN role ON (role.id = employee.role_id) LEFT JOIN employee manager ON employee.manager_id = manager.id WHERE manager_id = '+managerId+';';
             db.query(selectEmployeeByManager, function (err, results) {
                 console.table(results);
                 startMenu();

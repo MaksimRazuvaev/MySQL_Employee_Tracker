@@ -27,11 +27,11 @@ User can get html page based on user's input
 
 ## Demonstration of Functionality
 
-
+https://app.castify.com/view/22e15693-5c2f-4093-83da-226e3de3d968
 
 ## Extra Functionality Demonstration
 
-
+https://app.castify.com/view/c9f5eba4-829b-466e-8439-8ab9ef370815
 
 ## Credits
 
@@ -55,4 +55,3 @@ MIT License according to the LICENSE file in the repo.
 - https://www.w3schools.com/mysql/mysql_update.asp
 - https://stackoverflow.com/questions/12222525/mysql-triple-join
 - https://www.w3schools.com/mysql/mysql_delete.asp
-- 
