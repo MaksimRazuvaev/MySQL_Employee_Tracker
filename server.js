@@ -461,9 +461,9 @@ const viewEmployeeManager = () => {
                     managerId = employeeObj[i].id;
                 }
             }
-            const selectEmployeeByManager = 'SELECT * FROM employee WHERE manager_id = '+managerId+';';
+           // const selectEmployeeByManager = 'SELECT * FROM employee WHERE manager_id = '+managerId+';';
 
-            // const selectEmployeeByManager = 'SELECT	employee.id AS Employee_IDs, CONCAT(first_name, " ", last_name) AS employee, CONCAT (manager.first_name, " ", manager.last_name) AS manager, role.title AS Role_Title, FROM employee LEFT OUTER JOIN role ON (role.id = employee.role_id) LEFT JOIN employee manager ON employee.manager_id = manager.id WHERE manager_id = '+managerId+';';
+            const selectEmployeeByManager = 'SELECT	employee.id AS Employee_IDs, CONCAT(employee.first_name, " ", employee.last_name) AS Employee_Name, role.title AS Employee_Role_Title, CONCAT (manager.first_name, " ", manager.last_name) AS Manager_Name FROM employee LEFT JOIN role ON role.id = employee.role_id LEFT JOIN employee manager ON employee.manager_id = manager.id WHERE employee.manager_id = '+managerId+';';
             db.query(selectEmployeeByManager, function (err, results) {
                 console.table(results);
                 startMenu();
